@@ -37,7 +37,10 @@ namespace TrelloClient.Internal
             LengthBetween(parameter, 1, 16384, parameterName);
         }
 
+        public static void MatchesLongId(BoardId id) => MatchesLongId(id, parameterName: "boardId");
         public static void MatchesLongId(CardId id) => MatchesLongId(id, parameterName: "cardId");
+        public static void MatchesShortId(CardShortId id) => MatchesShortId(id, parameterName: "cardShortId");
+        public static void MatchesShortId(BoardShortId id) => MatchesShortId(id, parameterName: "boardShortId");
         public static void MatchesLongId(AttachmentId id) => MatchesLongId(id, parameterName: "AttachmentId");
         public static void MatchesLongId(BoardListId id) => MatchesLongId(id, parameterName: "listId");
 
@@ -47,6 +50,14 @@ namespace TrelloClient.Internal
             if (!Regex.IsMatch(id, @"^[0-9a-fA-F]{24}$"))
             {
                 throw new ArgumentException($"Parameter {parameterName} is not 24 characters or does not match pattern", parameterName);
+            }
+        }
+        public static void MatchesShortId(string id, string parameterName)
+        {
+            NotNullOrEmpty(id, parameterName);
+            if (!Regex.IsMatch(id, @"^[0-9a-zA-Z]{8}$"))
+            {
+                throw new ArgumentException($"Parameter {parameterName} is not 8 characters or does not match pattern", parameterName);
             }
         }
     }

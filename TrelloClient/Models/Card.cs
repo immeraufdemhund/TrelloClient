@@ -40,4 +40,18 @@ namespace TrelloClient.Models
         }
         public override string ToString() => this;
     }
+    public struct CardShortId
+    {
+        public static implicit operator string(CardShortId cardId) => cardId.Id;
+        public static implicit operator CardShortId(Card card) => new CardShortId(card.Id);
+        public static implicit operator CardShortId(string card) => new CardShortId(card);
+
+        private string Id { get; }
+        public CardShortId(string id)
+        {
+            Id = id;
+            // Guard.MatchesShortId(this);
+        }
+        public override string ToString() => this;
+    }
 }

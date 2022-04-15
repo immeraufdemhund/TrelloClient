@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -29,7 +30,18 @@ namespace TrelloClient
         public async Task<JToken> SendRequestJToken(ITrelloClientRequest request, CancellationToken cancellationToken)
         {
             var response = await _client.SendAsync(request.ToRequestMessage(), cancellationToken);
-            return await GetSuccessfulContentAsJToken(response, cancellationToken);
+            if (response.Content.Headers.ContentType.MediaType == "application/json")
+            {
+                return await GetSuccessfulContentAsJToken(response, cancellationToken);
+            }
+
+            if (response.Content.Headers.ContentType.MediaType == "text/plain")
+            {
+                var message = await response.Content.ReadAsStringAsync();
+                throw new Exception(message);
+            }
+
+            throw new NotSupportedException($"no support for content type {response.Content.Headers.ContentType.MediaType}");
         }
 
         internal async Task<T> GetSuccessfulContent<T>(HttpResponseMessage g)
@@ -42,14 +54,22 @@ namespace TrelloClient
             await using var stream = await response.Content.ReadAsStreamAsync();
             using var streamReader = new StreamReader(stream);
             using var reader = new JsonTextReader(streamReader);
-            var token = await JToken.LoadAsync(reader, cancellationToken);
-            if (!response.IsSuccessStatusCode)
+            try
             {
-                _logger.LogError("Problem with request {JTokenContent}", token);
-            }
+                var token = await JToken.LoadAsync(reader, cancellationToken);
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogError("Problem with request {JTokenContent}", token);
+                }
 
-            response.EnsureSuccessStatusCode();
-            return token;
+                response.EnsureSuccessStatusCode();
+                return token;
+            }
+            catch (JsonReaderException e)
+            {
+                _logger.LogError("Content returned was not json");
+                return JToken.Parse("{}");
+            }
         }
 
         private async Task<string> GetSuccessfulContent(HttpResponseMessage g)

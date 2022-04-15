@@ -17,6 +17,13 @@ namespace TrelloClient
         protected abstract string LocalPath { get; }
 
         protected void SetQueryParameter(string name, object value) => _queryParameters[name] = value.ToString();
+
+        protected void ConditionalSetQueryParameter(string name, object value, bool condition)
+        {
+            if(condition)
+                _queryParameters[name] = value.ToString();
+        }
+
         private readonly Dictionary<string, string> _queryParameters = new Dictionary<string, string>();
 
         private string Query

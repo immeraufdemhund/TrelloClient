@@ -25,9 +25,4 @@ namespace TrelloClient.Requests.Cards
             _cardId = cardId;
         }
     }
-
-    public abstract class CardsRequest : TrelloClientRequest
-    {
-        protected override string LocalPath => "/1/cards";
-    }
 }
